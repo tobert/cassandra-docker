@@ -11,23 +11,25 @@ of the time it should need no options.  Seeds can be passed in using the
 environment variable SEEDS.
 
 /bin/cassandra-runner.pl [--conf yaml] [--data dir] [--name name] [--seeds ip] [--listen ip] [--noconfig] [--nomkdir] [--dump] [--showip] [--nossh]
+
     --conf specify the location of cassandra.yaml
-	--data where to put the data directories
-	--name cassandra cluster name
-	--seeds comma separated list of gossip seeds
-	--listen address to listen on (rpc, storage, jmx)
-	--noconfig do not modify the config file
-	--nomkdir do not create directories
-	--dump dump the settings that will change in cassandra.yaml
-	--showip show the IP of the container
-	--nossh do not start dropbear ssh
+    --data where to put the data directories
+    --name cassandra cluster name
+    --seeds comma separated list of gossip seeds
+    --listen address to listen on (rpc, storage, jmx)
+    --noconfig do not modify the config file
+    --nomkdir do not create directories
+    --dump dump the settings that will change in cassandra.yaml
+    --showip show the IP of the container
+    --nossh do not start dropbear ssh
 
 Defaults:
+
     --conf /etc/cassandra/cassandra.yml
-	--data /var/lib/cassandra
-	--name "Cassandra in Docker"
-	--seeds <IP of the default interface>
-	--listen <IP of the default interface>
+    --data /var/lib/cassandra
+    --name "Cassandra in Docker"
+    --seeds <IP of the default interface>
+    --listen <IP of the default interface>
 
 =cut
 
@@ -42,7 +44,7 @@ use Pod::Usage;
 use POSIX;
 
 our($confname, $storage, $name, $listen, $seeds);
-our($opt_noconfig, $opt_nomkdirs, $opt_dump, $opt_showip, $opt_nossh);
+our($opt_noconfig, $opt_nomkdirs, $opt_dump, $opt_showip, $opt_nossh, $opt_help);
 
 # set it twice to silence useless warning
 local $YAML::UseHeader = 0; $YAML::UseHeader = 0;
@@ -57,8 +59,13 @@ GetOptions(
 	"nomkdirs" => \$opt_nomkdirs,
 	"dump"     => \$opt_dump,
 	"showip"   => \$opt_showip,
-	"nossh"    => \$opt_nossh
+	"nossh"    => \$opt_nossh,
+	"help"     => \$opt_help, "h" => \$opt_help
 );
+
+if ($opt_help) {
+	pod2usage();
+}
 
 # defaults
 $confname ||= "/etc/cassandra/cassandra.yaml";
