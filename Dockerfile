@@ -14,6 +14,7 @@ RUN apt-get update
 RUN apt-get dist-upgrade -y
 RUN apt-get install -y libyaml-perl busybox dropbear net-tools openjdk-7-jre-headless libjna-java dsc20
 RUN apt-get clean
+RUN mkdir -p /root/.ssh
 
 # storage port, JMX, Thrift, CQL Native
 EXPOSE 7000 7199 9160 9042
