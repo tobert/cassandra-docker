@@ -172,6 +172,7 @@ unless ($opt_nossh) {
 	my $authk = File::Spec->catfile($statedir, "authorized_keys");
 	if (-e $authk && -w "/root/.ssh") {
 		File::Copy::copy($authk, "/root/.ssh/authorized_keys");
+		chmod 0600, "/root/.ssh/authorized_keys";
 	}
 
 	# the host RSA key is stored in the statedir, if it is not
