@@ -37,6 +37,7 @@ use YAML ();
 use Getopt::Long;
 use File::Spec;
 use File::Path ();
+use File::Copy ();
 use Pod::Usage;
 use POSIX;
 
@@ -159,6 +160,15 @@ unless (-d $logdir) {
 
 # start dropbear ssh
 unless ($opt_nossh) {
+	# if there's an authorized_keys file in the statedir, copy it to ~root/.ssh
+	# this makes it easy to push keys into containers without having to modify them
+	my $authk = File::Spec->catfile($statedir, "authorized_keys");
+	if (-e $authk && -w "/root/.ssh") {
+		File::Copy::copy($authk, "/root/.ssh/authorized_keys");
+	}
+
+	# the host RSA key is stored in the statedir, if it is not
+	# present a new one is generated and persisted there
 	my $rsa_key = File::Spec->catfile($statedir, "rsa_host_key");
 	unless (-r $rsa_key) {
 		system("dropbearkey -t rsa -f $rsa_key");
