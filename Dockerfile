@@ -10,6 +10,7 @@ COPY datastax-repo_key /root/
 COPY datastax-community.sources.list /etc/apt/sources.list.d/
 COPY cassandra-runner.pl /bin/
 RUN apt-key add /root/datastax-repo_key
+RUN rm -f /root/datastax-repo_key
 RUN apt-get update
 RUN apt-get dist-upgrade -y
 RUN apt-get install -y libyaml-perl busybox dropbear net-tools openjdk-7-jre-headless libjna-java dsc20
