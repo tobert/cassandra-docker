@@ -375,11 +375,6 @@ sub splice_cassandra_env {
 			$buf .= "\n# ____END_ENVSH____\n\n";
 		}
 
-		# ignore any existing uncommented settings
-		if ($line =~ /^\s*(?:HEAP_NEWSIZE|MAX_HEAP_SIZE)=.*$/) {
-			next;
-		}
-
 		$buf .= $line;
 	}
 	close $in;
