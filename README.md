@@ -41,13 +41,41 @@ getting the seed into following nodes. This can be done without
 modifying images, as the wrapper script will take care of editing
 the configuration for you if you pass in the SEEDS environment variable.
 
+Setting a memory limit is also important for clusters since Cassandra
+will happily eat up 50% of RAM for each instance unless you limit it.
+
 ```
 mkdir -p /var/lib/{cass1,cass2,cass3}
-docker run -v /var/lib/cass1:/var/lib/cassandra dsc20
+docker run -m 1500m -v /var/lib/cass1:/var/lib/cassandra dsc20
 sleep 5
 # get the IP of the new container
 IP=$(< /var/lib/cass1/etc/listen_address.txt)
-docker run -e SEEDS=$IP -v /var/lib/cass2:/var/lib/cassandra dsc20
-docker run -e SEEDS=$IP -v /var/lib/cass3:/var/lib/cassandra dsc20
+docker run -m 1500m -e SEEDS=$IP -v /var/lib/cass2:/var/lib/cassandra dsc20
+docker run -m 1500m -e SEEDS=$IP -v /var/lib/cass3:/var/lib/cassandra dsc20
 ```
 
+### Advanced Configuration
+
+There are a few ways to get more control over the Cassandra instance without
+messing with the Docker image.
+
+#### Setting JVM Memory Usage
+
+Option A: set the `MAX_HEAP_SIZE` and `HEAP_NEWSIZE` environment variables. These
+must be acceptable values for -Xmx and -Xmn respectively.
+
+```
+docker run -m 2g -e MAX_HEAP_SIZE=1G -e HEAP_NEWSIZE=200M -v /tmp:/var/lib/cassandra dsc20
+```
+
+Option B: create a settings.sh file in the state dir, which is the `etc` directory
+under your volume.
+
+```
+mkdir -p /tmp/cass/etc
+cat > /tmp/cass/etc/settings.sh <<EOF
+MAX_HEAP_SIZE=1500M
+HEAP_NEWSIZE=256M
+EOF
+docker run -m 2g -v /tmp/cass:/var/lib/cassandra dsc20
+```

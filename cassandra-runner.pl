@@ -10,13 +10,15 @@ This program detects and sets defaults for most settings automatically. Most
 of the time it should need no options.  Seeds can be passed in using the
 environment variable SEEDS.
 
-/bin/cassandra-runner.pl [--conf yaml] [--data dir] [--name name] [--seeds ip] [--listen ip] [--noconfig] [--nomkdir] [--dump] [--showip] [--nossh]
+/bin/cassandra-runner.pl [--conf yaml] [--data dir] [--name name] [--seeds ip] [--listen ip] [--xmx 1G] [--xmn 100M] [--noconfig] [--nomkdir] [--dump] [--showip] [--nossh]
 
     --conf specify the location of cassandra.yaml
     --data where to put the data directories
     --name cassandra cluster name
     --seeds comma separated list of gossip seeds
     --listen address to listen on (rpc, storage, jmx)
+	--xmx set the JVM heap size (MAX_HEAP_SIZE)
+	--xmn set the JVM new size (HEAP_NEWSIZE)
     --noconfig do not modify the config file
     --nomkdir do not create directories
     --dump dump the settings that will change in cassandra.yaml
@@ -30,6 +32,8 @@ Defaults:
     --name "Cassandra in Docker"
     --seeds <IP of the default interface>
     --listen <IP of the default interface>
+	--xmx 1G or $ENV{MAX_HEAP_SIZE}
+	--xmn 100M or $ENV{HEAP_NEWSIZE}
 
 =cut
 
@@ -43,7 +47,7 @@ use File::Copy ();
 use Pod::Usage;
 use POSIX;
 
-our($confname, $storage, $name, $listen, $seeds);
+our($confname, $storage, $name, $listen, $xmx, $xmn, $seeds);
 our($opt_noconfig, $opt_nomkdirs, $opt_dump, $opt_showip, $opt_nossh, $opt_help);
 
 # set it twice to silence useless warning
@@ -55,6 +59,8 @@ GetOptions(
 	"name:s"   => \$name,
 	"seeds:s"  => \$seeds,
 	"listen:s" => \$listen,
+	"xmx"      => \$xmx,
+	"xmn"      => \$xmn,
 	"noconfig" => \$opt_noconfig,
 	"nomkdirs" => \$opt_nomkdirs,
 	"dump"     => \$opt_dump,
@@ -71,6 +77,8 @@ if ($opt_help) {
 $confname ||= "/etc/cassandra/cassandra.yaml";
 $storage  ||= "/var/lib/cassandra";
 $listen   ||= get_default_ip();
+$xmx      ||= $ENV{MAX_HEAP_SIZE} || "1G";
+$xmn      ||= $ENV{HEAP_NEWSIZE} || "100M";
 $seeds    ||= $ENV{SEEDS} || $listen;
 
 # show the IP of the current machine and exit
@@ -157,6 +165,18 @@ close $out;
 # on the bind volume
 unless ($opt_noconfig) {
 	symlink($newconf, $confname);
+}
+
+# if settings.sh exists in the statedir, copy it to /etc/default/cassandra
+my $edefaults = File::Spec->catfile($statedir, "settings.sh");
+if (-e $edefaults) {
+	File::Copy::copy($edefaults, "/etc/default/cassandra");
+}
+# always cap the heap when there's no settings.sh
+else {
+	open(my $cfh, "> /etc/default/cassandra") or die "Could not open /etc/default/cassandra for write: $!";
+	print $cfh "MAX_HEAP_SIZE=\"$xmx\"\nHEAP_NEWSIZE=\"$xmn\"\n";
+	close $cfh;
 }
 
 # write to a 'logs' directory next to the data dirs
