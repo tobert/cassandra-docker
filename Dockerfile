@@ -1,10 +1,8 @@
-FROM       ubuntu:raring
+FROM       raring
 MAINTAINER Al Tobey <atobey@datastax.com>
 
 VOLUME ["/var/lib/cassandra"]
 ENTRYPOINT ["/bin/cassandra-runner.pl"]
-
-ENV http_proxy http://192.168.10.4:3128
 
 COPY datastax-repo_key /root/
 COPY datastax-community.sources.list /etc/apt/sources.list.d/
