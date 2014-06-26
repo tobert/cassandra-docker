@@ -32,8 +32,44 @@ Defaults:
     --name "Cassandra in Docker"
     --seeds <IP of the default interface>
     --listen <IP of the default interface>
-	--xmx 1G or $ENV{MAX_HEAP_SIZE}
-	--xmn 100M or $ENV{HEAP_NEWSIZE}
+	--xmx $ENV{MAX_HEAP_SIZE} / env.sh
+	--xmn $ENV{HEAP_NEWSIZE} / env.sh
+
+=head1 SETTINGS
+
+A few settings can be provided and persisted across container executions in
+the bound volume. A directory is created there called 'etc', so if you
+docker run -v /tmp/foo:/var/lib/cassandra, you'll get a /tmp/foo/etc. There
+are some files that are used to make persistent changes to the environment
+without having to hack on the Docker image.
+
+=over 4
+
+=item env.sh
+
+If this file exists, it will be spliced into cassandra-env.sh where the
+MAX_HEAP_SIZE and HEAP_NEWSIZE settings usually go. If both --xmx and
+--xmn are specified on the command line and no env.sh exists, it will
+be created to persist those settings across containers. Once created,
+env.sh is not overwritten.
+
+   MAX_HEAP_SIZE=1G
+   HEAP_NEWSIZE=100M
+
+=item authorized_keys
+
+This file will get copied to /root/.ssh/authorized_keys with the correct
+permissions so you can ssh into the container.
+
+=back
+
+=head1 TODO
+
+Break up the main body into functions.
+
+=head1 AUTHOR
+
+Al Tobey <atobey@datastax.com>
 
 =cut
 
@@ -77,8 +113,8 @@ if ($opt_help) {
 $confname ||= "/etc/cassandra/cassandra.yaml";
 $storage  ||= "/var/lib/cassandra";
 $listen   ||= get_default_ip();
-$xmx      ||= $ENV{MAX_HEAP_SIZE} || "1G";
-$xmn      ||= $ENV{HEAP_NEWSIZE} || "100M";
+$xmx      ||= $ENV{MAX_HEAP_SIZE};
+$xmn      ||= $ENV{HEAP_NEWSIZE};
 $seeds    ||= $ENV{SEEDS} || $listen;
 
 # show the IP of the current machine and exit
@@ -167,16 +203,24 @@ unless ($opt_noconfig) {
 	symlink($newconf, $confname);
 }
 
-# if settings.sh exists in the statedir, copy it to /etc/default/cassandra
-my $edefaults = File::Spec->catfile($statedir, "settings.sh");
-if (-e $edefaults) {
-	File::Copy::copy($edefaults, "/etc/default/cassandra");
-}
-# always cap the heap when there's no settings.sh
-else {
-	open(my $cfh, "> /etc/default/cassandra") or die "Could not open /etc/default/cassandra for write: $!";
+my $envsh = File::Spec->catfile($statedir, "env.sh");
+
+# create env.sh if it doesn't exist to persist the settings
+# both xmx and xmn must be set for it to work, so only persist
+# if they're both passed in
+if (! -r $envsh && $xmx && $xmn) {
+	open(my $cfh, "> $envsh") or die "Could not open $envsh for write: $!";
 	print $cfh "MAX_HEAP_SIZE=\"$xmx\"\nHEAP_NEWSIZE=\"$xmn\"\n";
 	close $cfh;
+}
+
+# if env.sh exists in the statedir, it will be spliced into
+# cassandra-env.sh where the memory settings are normally made
+# This was chosen over copying a full cassandra-env.sh to make
+# it work across most releases of Cassandra without having to
+# have users rewrite their cassandra-env.sh.
+if (-r $envsh) {
+	splice_cassandra_env("/etc/cassandra/cassandra-env.sh", $envsh);
 }
 
 # write to a 'logs' directory next to the data dirs
@@ -300,4 +344,47 @@ sub try_drop_root {
 	system("chown -R $ids->[0]:$ids->[1] $storage");
 	POSIX::setgid($ids->[1]);
 	POSIX::setuid($ids->[0]);
+}
+
+sub splice_cassandra_env {
+	my($target, $envsh) = @_;
+
+	open(my $in, "< $target") or die "Could not open $target for read: $!";
+
+	my $buf = "";
+	my $in_old_envsh = undef;
+	while (my $line = <$in>) {
+		if ($in_old_envsh) {
+			if ($line =~ /^# ____END_ENVSH____/) {
+				$in_old_envsh = undef;
+				next;
+			}
+		}
+
+		# skip the old envsh block
+		if ($line =~ /^# ____BEGIN_ENVSH____/) {
+			$in_old_envsh = 1;
+			next;
+		}
+
+		# this has to be there or there's no other good way to find
+		# the right place in the file to inject the code :/
+		if ($line =~ /^\s*#?\s*MAX_HEAP_SIZE=.*$/) {
+			$buf .= "\n\n# ____BEGIN_ENVSH____\n";
+			$buf .= slurp($envsh);
+			$buf .= "\n# ____END_ENVSH____\n\n";
+		}
+
+		# ignore any existing uncommented settings
+		if ($line =~ /^\s*(?:HEAP_NEWSIZE|MAX_HEAP_SIZE)=.*$/) {
+			next;
+		}
+
+		$buf .= $line;
+	}
+	close $in;
+
+	open(my $out, "> $target") or die "Could not open $target for write: $!";
+	print $out $buf;
+	close $out;
 }
