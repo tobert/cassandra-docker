@@ -12,7 +12,7 @@ written to!
 ```
 docker pull tobert/dsc208
 mkdir /srv/cassandra
-docker run -d -v /srv/cassandra:/var/lib/cassandra dsc208
+docker run -d -v /srv/cassandra:/var/lib/cassandra tobert/dsc208
 ```
 
 ### Building
