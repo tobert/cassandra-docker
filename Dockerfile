@@ -1,4 +1,4 @@
-FROM       raring
+FROM       ubuntu:14.04
 MAINTAINER Al Tobey <atobey@datastax.com>
 
 VOLUME ["/var/lib/cassandra"]
