@@ -60,12 +60,12 @@ will happily eat up 50% of RAM for each instance unless you limit it.
 
 ```
 mkdir -p /var/lib/{cass1,cass2,cass3}
-docker run -m 1500m -v /var/lib/cass1:/var/lib/cassandra dsc208
+docker run -d -m 1500m -v /var/lib/cass1:/var/lib/cassandra tobert/dsc208
 sleep 5
 # get the IP of the new container
 IP=$(< /var/lib/cass1/etc/listen_address.txt)
-docker run -m 1500m -e SEEDS=$IP -v /var/lib/cass2:/var/lib/cassandra dsc208
-docker run -m 1500m -e SEEDS=$IP -v /var/lib/cass3:/var/lib/cassandra dsc208
+docker run -d -m 1500m -e SEEDS=$IP -v /var/lib/cass2:/var/lib/cassandra tobert/dsc208
+docker run -d -m 1500m -e SEEDS=$IP -v /var/lib/cass3:/var/lib/cassandra tobert/dsc208
 nodetool -h $IP status
 ```
 
@@ -93,5 +93,5 @@ cat > /var/lib/cass1/etc/env.sh <<EOF
 MAX_HEAP_SIZE=1500M
 HEAP_NEWSIZE=256M
 EOF
-docker run -m 2g -v /var/lib/cass1:/var/lib/cassandra dsc208
+docker run -d -m 2g -v /var/lib/cass1:/var/lib/cassandra dsc208
 ```
