@@ -27,7 +27,7 @@ environment variable SEEDS.
 
 Defaults:
 
-    --conf /etc/cassandra/cassandra.yml
+    --conf /opt/cassandra/conf/cassandra.yml
     --data /var/lib/cassandra
     --name "Cassandra in Docker"
     --seeds <IP of the default interface>
@@ -110,7 +110,7 @@ if ($opt_help) {
 }
 
 # defaults
-$confname ||= "/etc/cassandra/cassandra.yaml";
+$confname ||= "/opt/cassandra/conf/cassandra.yaml";
 $storage  ||= "/var/lib/cassandra";
 $listen   ||= get_default_ip();
 $xmx      ||= $ENV{MAX_HEAP_SIZE};
@@ -220,7 +220,7 @@ if (! -r $envsh && $xmx && $xmn) {
 # it work across most releases of Cassandra without having to
 # have users rewrite their cassandra-env.sh.
 if (-r $envsh) {
-	splice_cassandra_env("/etc/cassandra/cassandra-env.sh", $envsh);
+	splice_cassandra_env("/opt/cassandra/conf/cassandra-env.sh", $envsh);
 }
 
 # write to a 'logs' directory next to the data dirs
@@ -253,7 +253,7 @@ unless ($opt_nossh) {
 try_drop_root();
 
 # start cassandra!
-system("/usr/sbin/cassandra -f >$logdir/stdout 2>$logdir/stderr");
+system("/opt/cassandra/bin/cassandra -f >$logdir/stdout 2>$logdir/stderr");
 
 # sleep forever
 while (1) {
