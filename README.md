@@ -6,18 +6,18 @@ Dockerfile &amp; scripts to run Cassandra in Docker
 ### Running
 
 A Docker image with Datastax Community Edition / Cassandra 2.0.8 is published
-to tobert/dsc208. It expects a volume to be assigned. This volume will be
+to tobert/cassandra. It expects a volume to be assigned. This volume will be
 written to!
 
 ```
-docker pull tobert/dsc208
+docker pull tobert/cassandra
 mkdir /srv/cassandra
-docker run -d -v /srv/cassandra:/var/lib/cassandra tobert/dsc208
+docker run -d -v /srv/cassandra:/var/lib/cassandra tobert/cassandra
 ```
 
 ### Building
 
-`sudo docker build -t dsc208 .`
+`sudo docker build -t cassandra .`
 
 ### Running a Single Node
 
@@ -25,7 +25,7 @@ While it is possible to run a node without a volume attached,
 this is not recommended. Most COW filesystems used by Docker
 will not perform well under database workloads.
 
-`docker run -v /var/lib/cassandra tobert/dsc208`
+`docker run -v /var/lib/cassandra tobert/cassandra`
 
 #### With SSH
 
@@ -43,7 +43,7 @@ The other way is to create an `authorized_keys` file in `$VOLUME/etc/authorized_
 before booting and it will get copied to /root/.ssh for you.
 
 ```
-docker run -v $HOME/.ssh:/root/.ssh:ro -v /var/lib/cassandra tobert/dsc208
+docker run -v $HOME/.ssh:/root/.ssh:ro -v /var/lib/cassandra tobert/cassandra
 ssh root@$(cat /var/lib/cassandra/etc/listen_address.txt)
 ```
 
@@ -60,12 +60,12 @@ will happily eat up 50% of RAM for each instance unless you limit it.
 
 ```
 mkdir -p /var/lib/{cass1,cass2,cass3}
-docker run -d -m 1500m -v /var/lib/cass1:/var/lib/cassandra tobert/dsc208
+docker run -d -m 1500m -v /var/lib/cass1:/var/lib/cassandra tobert/cassandra
 sleep 5
 # get the IP of the new container
 IP=$(< /var/lib/cass1/etc/listen_address.txt)
-docker run -d -m 1500m -e SEEDS=$IP -v /var/lib/cass2:/var/lib/cassandra tobert/dsc208
-docker run -d -m 1500m -e SEEDS=$IP -v /var/lib/cass3:/var/lib/cassandra tobert/dsc208
+docker run -d -m 1500m -e SEEDS=$IP -v /var/lib/cass2:/var/lib/cassandra tobert/cassandra
+docker run -d -m 1500m -e SEEDS=$IP -v /var/lib/cass3:/var/lib/cassandra tobert/cassandra
 nodetool -h $IP status
 ```
 
@@ -82,7 +82,7 @@ in the volume under etc/env.sh automatically, so these flags are only required
 the first time.
 
 ```
-docker run -m 2g -e MAX_HEAP_SIZE=1G -e HEAP_NEWSIZE=200M -v /var/lib/cass1:/var/lib/cassandra tobert/dsc208
+docker run -m 2g -e MAX_HEAP_SIZE=1G -e HEAP_NEWSIZE=200M -v /var/lib/cass1:/var/lib/cassandra tobert/cassandra
 ```
 
 Option B: create a env.sh file in the state dir, which is the `etc` directory
@@ -93,5 +93,5 @@ cat > /var/lib/cass1/etc/env.sh <<EOF
 MAX_HEAP_SIZE=1500M
 HEAP_NEWSIZE=256M
 EOF
-docker run -d -m 2g -v /var/lib/cass1:/var/lib/cassandra tobert/dsc208
+docker run -d -m 2g -v /var/lib/cass1:/var/lib/cassandra tobert/cassandra
 ```
