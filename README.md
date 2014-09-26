@@ -5,7 +5,7 @@ Dockerfile &amp; scripts to run Cassandra in Docker
 
 ### Running
 
-A Docker image with Datastax Community Edition / Cassandra 2.0.8 is published
+A Docker image with Cassandra 2.0.10 is published
 to tobert/cassandra. It expects a volume to be assigned. This volume will be
 written to!
 
