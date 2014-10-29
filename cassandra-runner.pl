@@ -15,8 +15,8 @@ This program detects and sets up cassandra inside docker automatically.
     --name cassandra cluster name
     --seeds comma separated list of gossip seeds
     --listen address to listen on (rpc, storage, jmx)
-	--xmx set the JVM heap size (MAX_HEAP_SIZE)
-	--xmn set the JVM new size (HEAP_NEWSIZE)
+    --xmx set the JVM heap size (MAX_HEAP_SIZE)
+    --xmn set the JVM new size (HEAP_NEWSIZE)
     --noconfig do not modify the config file
     --nomkdir do not create directories
     --dump dump the settings that will change in cassandra.yaml
@@ -29,8 +29,8 @@ Defaults:
     --name "Cassandra in Docker"
     --seeds <IP of the default interface>
     --listen <IP of the default interface>
-	--xmx $ENV{MAX_HEAP_SIZE} / env.sh
-	--xmn $ENV{HEAP_NEWSIZE} / env.sh
+    --xmx $ENV{MAX_HEAP_SIZE} / env.sh
+    --xmn $ENV{HEAP_NEWSIZE} / env.sh
 
 =head1 SETTINGS
 
@@ -82,22 +82,22 @@ our($opt_noconfig, $opt_nomkdirs, $opt_dump, $opt_showip, $opt_help);
 local $YAML::UseHeader = 0; $YAML::UseHeader = 0;
 
 GetOptions(
-	"conf:s"   => \$confname,
-	"data:s"   => \$storage,
-	"name:s"   => \$name,
-	"seeds:s"  => \$seeds,
-	"listen:s" => \$listen,
-	"xmx"      => \$xmx,
-	"xmn"      => \$xmn,
-	"noconfig" => \$opt_noconfig,
-	"nomkdirs" => \$opt_nomkdirs,
-	"dump"     => \$opt_dump,
-	"showip"   => \$opt_showip,
-	"help"     => \$opt_help, "h" => \$opt_help
+    "conf:s"   => \$confname,
+    "data:s"   => \$storage,
+    "name:s"   => \$name,
+    "seeds:s"  => \$seeds,
+    "listen:s" => \$listen,
+    "xmx"      => \$xmx,
+    "xmn"      => \$xmn,
+    "noconfig" => \$opt_noconfig,
+    "nomkdirs" => \$opt_nomkdirs,
+    "dump"     => \$opt_dump,
+    "showip"   => \$opt_showip,
+    "help"     => \$opt_help, "h" => \$opt_help
 );
 
 if ($opt_help) {
-	pod2usage();
+    pod2usage();
 }
 
 # defaults
@@ -111,23 +111,23 @@ $seeds    ||= $ENV{SEEDS} || $listen;
 # show the IP of the current machine and exit
 # this defaults to the default interface, but can be overridden with --listen
 if ($opt_showip) {
-	print "$listen\n";
-	exit 0;
+    print "$listen\n";
+    exit 0;
 }
 
 my %new = (
-	'data_file_directories'  => [File::Spec->catdir($storage, "data")],
-	'commitlog_directory'    => [File::Spec->catdir($storage, "commit")],
-	'saved_caches_directory' => File::Spec->catdir($storage, "saved_caches"),
-	'rpc_address'            => $listen,
-	'listen_address'         => $listen,
-	'cluster_name'           => "Cassandra in Docker"
+    'data_file_directories'  => [File::Spec->catdir($storage, "data")],
+    'commitlog_directory'    => [File::Spec->catdir($storage, "commit")],
+    'saved_caches_directory' => File::Spec->catdir($storage, "saved_caches"),
+    'rpc_address'            => $listen,
+    'listen_address'         => $listen,
+    'cluster_name'           => "Cassandra in Docker"
 );
 
 # rather than trying to find the right part of the data structure from the
 # YAML, just overwrite the whole thing
 $new{'seed_provider'} = [{
-	'class_name' => 'org.apache.cassandra.locator.SimpleSeedProvider',
+    'class_name' => 'org.apache.cassandra.locator.SimpleSeedProvider',
     'parameters' => [{ 'seeds' => $seeds }]
 }];
 
@@ -138,24 +138,24 @@ our $newconf = File::Spec->catfile($statedir, "cassandra.yaml");
 
 # create directories on the volume
 unless ($opt_nomkdirs) {
-	foreach my $key (keys %new) {
-		# cheezy: assume anything starting with / is a path to be made
-		if ($key =~ /^\//) {
-			File::Path::mkpath($new{$key});
-		}
-	}
+    foreach my $key (keys %new) {
+        # cheezy: assume anything starting with / is a path to be made
+        if ($key =~ /^\//) {
+            File::Path::mkpath($new{$key});
+        }
+    }
 }
 
 # for debugging, print the config that will change and exit
 if ($opt_dump) {
-	print YAML::Dump(\%new);
-	exit 0;
+    print YAML::Dump(\%new);
+    exit 0;
 }
 
 # generate a name for the old file
 my $oldconf = $confname . ".orig";
 if (-e $oldconf) {
-	$confname = $oldconf;
+    $confname = $oldconf;
 }
 
 # load the data from the original cassandra.yaml
@@ -167,19 +167,19 @@ $conf->{'max_hint_window_in_ms'} = 10800000;
 
 # copy modified values into the config hash
 foreach my $key (keys %new) {
-	$conf->{$key} = $new{$key};
+    $conf->{$key} = $new{$key};
 
-	# write out the current values to the state dir
-	unless (ref $new{$key}) {
-		open(my $fh, "> $statedir/$key.txt") or next;
-		print $fh $new{$key};
-		close $fh;
-	}
+    # write out the current values to the state dir
+    unless (ref $new{$key}) {
+        open(my $fh, "> $statedir/$key.txt") or next;
+        print $fh $new{$key};
+        close $fh;
+    }
 }
 
 # rename the old file, but only if it's not the same name
 if ($oldconf ne $confname && ! -e $oldconf) {
-	rename($confname, $oldconf);
+    rename($confname, $oldconf);
 }
 
 # write the new YAML out to the statedir
@@ -191,7 +191,7 @@ close $out;
 # this leaves the actual file visible from outside the container
 # on the bind volume
 unless ($opt_noconfig) {
-	symlink($newconf, $confname);
+    symlink($newconf, $confname);
 }
 
 my $envsh = File::Spec->catfile($statedir, "env.sh");
@@ -200,9 +200,9 @@ my $envsh = File::Spec->catfile($statedir, "env.sh");
 # both xmx and xmn must be set for it to work, so only persist
 # if they're both passed in
 if (! -r $envsh && $xmx && $xmn) {
-	open(my $cfh, "> $envsh") or die "Could not open $envsh for write: $!";
-	print $cfh "MAX_HEAP_SIZE=\"$xmx\"\nHEAP_NEWSIZE=\"$xmn\"\n";
-	close $cfh;
+    open(my $cfh, "> $envsh") or die "Could not open $envsh for write: $!";
+    print $cfh "MAX_HEAP_SIZE=\"$xmx\"\nHEAP_NEWSIZE=\"$xmn\"\n";
+    close $cfh;
 }
 
 # if env.sh exists in the statedir, it will be spliced into
@@ -211,13 +211,13 @@ if (! -r $envsh && $xmx && $xmn) {
 # it work across most releases of Cassandra without having to
 # have users rewrite their cassandra-env.sh.
 if (-r $envsh) {
-	splice_cassandra_env("/opt/cassandra/conf/cassandra-env.sh", $envsh);
+    splice_cassandra_env("/opt/cassandra/conf/cassandra-env.sh", $envsh);
 }
 
 # write to a 'logs' directory next to the data dirs
 my $logdir = File::Spec->catdir($storage, "logs");
 unless (-d $logdir) {
-	File::Path::mkpath($logdir);
+    File::Path::mkpath($logdir);
 }
 
 # try to drop root privileges before running C*
@@ -229,7 +229,7 @@ system("/opt/cassandra/bin/cassandra -f >$logdir/stdout 2>$logdir/stderr");
 
 # sleep forever
 while (1) {
-	sleep 1;
+    sleep 1;
 }
 
 # get the default IP of the machine at run time
@@ -237,123 +237,123 @@ while (1) {
 # if there isn't a default route (rare), use the first
 # interface that has an rfc1918 address
 sub get_default_ip {
-	open(my $ifh, "/bin/ip route show |") or die "Could not execute /bin/ip route show: $!";
-	my %routes;
-	while (my $line = <$ifh>) {
-		my @parts = split /\s+/, $line;
-		for (my $i=0; $i<$#parts; $i++) {
-			if ($parts[$i] eq "dev" && defined($parts[$i+1]) && length($parts[$i+1]) > 0) {
-				if ($parts[$i+1] =~ /^(?:lo|dummy)/) {
-					next;
-				}
+    open(my $ifh, "/bin/ip route show |") or die "Could not execute /bin/ip route show: $!";
+    my %routes;
+    while (my $line = <$ifh>) {
+        my @parts = split /\s+/, $line;
+        for (my $i=0; $i<$#parts; $i++) {
+            if ($parts[$i] eq "dev" && defined($parts[$i+1]) && length($parts[$i+1]) > 0) {
+                if ($parts[$i+1] =~ /^(?:lo|dummy)/) {
+                    next;
+                }
 
-				$routes{$parts[0]} = $parts[$i+1];
-				last;
-			}
-		}
-	}
-	close $ifh;
+                $routes{$parts[0]} = $parts[$i+1];
+                last;
+            }
+        }
+    }
+    close $ifh;
 
-	my $iface = "eth0";
-	if (exists $routes{default}) {
-		$iface = $routes{default};
-	}
-	# otherwise, guess it's the first interface with an rfc1918 address
-	else {
-		foreach my $net (%routes) {
-			if ($net =~ /^(?:192|172|10)\./) {
-				$iface = $routes{$net};
-			}
-		}
-	}
+    my $iface = "eth0";
+    if (exists $routes{default}) {
+        $iface = $routes{default};
+    }
+    # otherwise, guess it's the first interface with an rfc1918 address
+    else {
+        foreach my $net (%routes) {
+            if ($net =~ /^(?:192|172|10)\./) {
+                $iface = $routes{$net};
+            }
+        }
+    }
 
-	my $address = "127.0.0.1";
-	open(my $fh, "/bin/ip addr show $iface |") or die "Could not run /bin/ip addr show $iface: $!";
-	while (my $line = <$fh>) {
-		#    inet 192.168.42.10/24 brd 192.168.42.255 scope global enp10s0
-		if ($line =~ /\s*inet\s+(\S+)\/\d+/) {
-			$address = $1;
-		}
-	}
-	close $fh;
+    my $address = "127.0.0.1";
+    open(my $fh, "/bin/ip addr show $iface |") or die "Could not run /bin/ip addr show $iface: $!";
+    while (my $line = <$fh>) {
+        #    inet 192.168.42.10/24 brd 192.168.42.255 scope global enp10s0
+        if ($line =~ /\s*inet\s+(\S+)\/\d+/) {
+            $address = $1;
+        }
+    }
+    close $fh;
 
-	return $address;
+    return $address;
 }
 
 sub slurp {
-	my $file = shift;
-	open(my $fh, "< $file") or die "could not open $file for read: $!";
-	local $/ = undef;
-	my $data = <$fh>;
-	close $fh;
-	return $data;
+    my $file = shift;
+    open(my $fh, "< $file") or die "could not open $file for read: $!";
+    local $/ = undef;
+    my $data = <$fh>;
+    close $fh;
+    return $data;
 }
 
 # get the uid/gid for cassandra:cassandra if available otherwise return 0,0
 # The DSC packages create a cassandra user/group so it should always
 # run as a user.
 sub get_user_ids {
-	my $ids = [0,0];
-	open(my $pfh, "< /etc/passwd") or return($ids);
-	while (my $line = <$pfh>) {
-		my @u = split /:/, $line;
-		if ($u[0] eq "cassandra") {
-			$ids->[0] = $u[2];
-			$ids->[1] = $u[3];
-			last;
-		}
-	}
-	close $pfh;
-	return $ids;
+    my $ids = [0,0];
+    open(my $pfh, "< /etc/passwd") or return($ids);
+    while (my $line = <$pfh>) {
+        my @u = split /:/, $line;
+        if ($u[0] eq "cassandra") {
+            $ids->[0] = $u[2];
+            $ids->[1] = $u[3];
+            last;
+        }
+    }
+    close $pfh;
+    return $ids;
 }
 
 sub try_drop_root {
-	my $ids = get_user_ids();
-	if ($ids->[0] == 0) {
-		return;
-	}
+    my $ids = get_user_ids();
+    if ($ids->[0] == 0) {
+        return;
+    }
 
-	system("chown -R $ids->[0]:$ids->[1] $storage");
-	POSIX::setgid($ids->[1]);
-	POSIX::setuid($ids->[0]);
+    system("chown -R $ids->[0]:$ids->[1] $storage");
+    POSIX::setgid($ids->[1]);
+    POSIX::setuid($ids->[0]);
 }
 
 sub splice_cassandra_env {
-	my($target, $envsh) = @_;
+    my($target, $envsh) = @_;
 
-	open(my $in, "< $target") or die "Could not open $target for read: $!";
+    open(my $in, "< $target") or die "Could not open $target for read: $!";
 
-	my $buf = "";
-	my $in_old_envsh = undef;
-	while (my $line = <$in>) {
-		if ($in_old_envsh) {
-			if ($line =~ /^# ____END_ENVSH____/) {
-				$in_old_envsh = undef;
-				next;
-			}
-		}
+    my $buf = "";
+    my $in_old_envsh = undef;
+    while (my $line = <$in>) {
+        if ($in_old_envsh) {
+            if ($line =~ /^# ____END_ENVSH____/) {
+                $in_old_envsh = undef;
+                next;
+            }
+        }
 
-		# skip the old envsh block
-		if ($line =~ /^# ____BEGIN_ENVSH____/) {
-			$in_old_envsh = 1;
-			next;
-		}
+        # skip the old envsh block
+        if ($line =~ /^# ____BEGIN_ENVSH____/) {
+            $in_old_envsh = 1;
+            next;
+        }
 
-		# this has to be there or there's no other good way to find
-		# the right place in the file to inject the code :/
-		if ($line =~ /^\s*#?\s*MAX_HEAP_SIZE=.*$/) {
-			$buf .= "\n\n# ____BEGIN_ENVSH____\n";
-			$buf .= slurp($envsh);
-			$buf .= "\n# ____END_ENVSH____\n\n";
-		}
+        # this has to be there or there's no other good way to find
+        # the right place in the file to inject the code :/
+        if ($line =~ /^\s*#?\s*MAX_HEAP_SIZE=.*$/) {
+            $buf .= "\n\n# ____BEGIN_ENVSH____\n";
+            $buf .= slurp($envsh);
+            $buf .= "\n# ____END_ENVSH____\n\n";
+        }
 
-		$buf .= $line;
-	}
-	close $in;
+        $buf .= $line;
+    }
+    close $in;
 
-	open(my $out, "> $target") or die "Could not open $target for write: $!";
-	print $out $buf;
-	close $out;
+    open(my $out, "> $target") or die "Could not open $target for write: $!";
+    print $out $buf;
+    close $out;
 }
 
 # vim: et ts=4 sw=4 ai smarttab
