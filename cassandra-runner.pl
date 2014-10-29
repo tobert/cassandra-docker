@@ -6,11 +6,9 @@ cassandra-runner.pl - a script to configure & run Cassandra in Docker
 
 =head1 SYNOPSIS
 
-This program detects and sets defaults for most settings automatically. Most
-of the time it should need no options.  Seeds can be passed in using the
-environment variable SEEDS.
+This program detects and sets up cassandra inside docker automatically.
 
-/bin/cassandra-runner.pl [--conf yaml] [--data dir] [--name name] [--seeds ip] [--listen ip] [--xmx 1G] [--xmn 100M] [--noconfig] [--nomkdir] [--dump] [--showip] [--nossh]
+/bin/cassandra-runner.pl [--conf yaml] [--data dir] [--name name] [--seeds ip] [--listen ip] [--xmx 1G] [--xmn 100M] [--noconfig] [--nomkdir] [--dump] [--showip]
 
     --conf specify the location of cassandra.yaml
     --data where to put the data directories
@@ -23,7 +21,6 @@ environment variable SEEDS.
     --nomkdir do not create directories
     --dump dump the settings that will change in cassandra.yaml
     --showip show the IP of the container
-    --nossh do not start dropbear ssh
 
 Defaults:
 
@@ -56,11 +53,6 @@ env.sh is not overwritten.
    MAX_HEAP_SIZE=1G
    HEAP_NEWSIZE=100M
 
-=item authorized_keys
-
-This file will get copied to /root/.ssh/authorized_keys with the correct
-permissions so you can ssh into the container.
-
 =back
 
 =head1 TODO
@@ -84,7 +76,7 @@ use Pod::Usage;
 use POSIX;
 
 our($confname, $storage, $name, $listen, $xmx, $xmn, $seeds);
-our($opt_noconfig, $opt_nomkdirs, $opt_dump, $opt_showip, $opt_nossh, $opt_help);
+our($opt_noconfig, $opt_nomkdirs, $opt_dump, $opt_showip, $opt_help);
 
 # set it twice to silence useless warning
 local $YAML::UseHeader = 0; $YAML::UseHeader = 0;
@@ -101,7 +93,6 @@ GetOptions(
 	"nomkdirs" => \$opt_nomkdirs,
 	"dump"     => \$opt_dump,
 	"showip"   => \$opt_showip,
-	"nossh"    => \$opt_nossh,
 	"help"     => \$opt_help, "h" => \$opt_help
 );
 
@@ -227,25 +218,6 @@ if (-r $envsh) {
 my $logdir = File::Spec->catdir($storage, "logs");
 unless (-d $logdir) {
 	File::Path::mkpath($logdir);
-}
-
-# start dropbear ssh
-unless ($opt_nossh) {
-	# if there's an authorized_keys file in the statedir, copy it to ~root/.ssh
-	# this makes it easy to push keys into containers without having to modify them
-	my $authk = File::Spec->catfile($statedir, "authorized_keys");
-	if (-e $authk && -w "/root/.ssh") {
-		File::Copy::copy($authk, "/root/.ssh/authorized_keys");
-		chmod 0600, "/root/.ssh/authorized_keys";
-	}
-
-	# the host RSA key is stored in the statedir, if it is not
-	# present a new one is generated and persisted there
-	my $rsa_key = File::Spec->catfile($statedir, "rsa_host_key");
-	unless (-r $rsa_key) {
-		system("dropbearkey -t rsa -f $rsa_key");
-	}
-	system("/usr/sbin/dropbear -r $rsa_key -s -g -p $listen:22");
 }
 
 # try to drop root privileges before running C*
@@ -383,3 +355,5 @@ sub splice_cassandra_env {
 	print $out $buf;
 	close $out;
 }
+
+# vim: et ts=4 sw=4 ai smarttab
