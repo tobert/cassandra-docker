@@ -17,9 +17,9 @@ RUN /bin/sh /install-cassandra-tarball.sh
 
 # create a cassandra user:group & chown
 # Note: this UID/GID is hard-coded in main.go
-RUN groupadd -g 1337 cassandra
-RUN useradd -u 1337 -g cassandra -s /bin/sh -d /data cassandra
-RUN chown -R cassandra:cassandra /data
+RUN groupadd -g 1337 cassandra && \
+    useradd -u 1337 -g cassandra -s /bin/sh -d /data cassandra && \
+    chown -R cassandra:cassandra /data
 
 # the source configuration (templates) need to be in /src/conf
 # so the entry point can find them
@@ -28,6 +28,12 @@ COPY conf /src/conf
 # install the entrypoint
 # building it is just: go build
 COPY cassandra-docker /bin/
+
+# create symlinks for common commands (for docker exec)
+RUN ln -s /bin/cassandra-docker /bin/cassandra && \
+    ln -s /bin/cassandra-docker /bin/cqlsh     && \
+    ln -s /bin/cassandra-docker /bin/nodetool  && \
+    ln -s /bin/cassandra-docker /bin/cassandra-stress
 
 # SSH, Storage Port, JMX, Thrift, CQL Native, OpsCenter Agent
 # Left out: SSL
