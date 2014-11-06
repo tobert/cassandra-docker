@@ -1,0 +1,12 @@
+chdir: /data
+argv:
+  - /usr/bin/java
+  - -Xmx128m
+  - -Dlog4j.configuration=log4j-tools.properties
+  - -Dstorage-config=/data/conf
+  - -cp
+  - {{ glob ":" "/data/conf" "/data/lib" "/opt/cassandra/lib/*.jar" }}
+  - org.apache.cassandra.tools.NodeCmd
+  - -p
+  - {{ .JmxPort }}
+{{ range .ExtraArgs }}  - {{ . }}{{ end }}

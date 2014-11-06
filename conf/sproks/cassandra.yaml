@@ -1,0 +1,40 @@
+chdir: /data
+stdin: /dev/null
+stdout: /data/log/console.log
+stderr: /data/log/console.log
+argv:
+  - /usr/bin/java
+  - -ea
+  - -javaagent:{{ glob "" "/opt/cassandra/lib/jamm-*.jar" }}
+  - -XX:+CMSClassUnloadingEnabled
+  - -XX:+UseThreadPriorities
+  - -XX:ThreadPriorityPolicy=42
+  - -Xms1024M
+  - -Xmx1024M
+  - -Xmn256M
+  - -XX:+HeapDumpOnOutOfMemoryError
+  - -Xss256k
+  - -XX:StringTableSize=1000003
+  - -XX:+UseParNewGC
+  - -XX:+UseConcMarkSweepGC
+  - -XX:+CMSParallelRemarkEnabled
+  - -XX:SurvivorRatio=8
+  - -XX:MaxTenuringThreshold=1
+  - -XX:CMSInitiatingOccupancyFraction=75
+  - -XX:+UseCMSInitiatingOccupancyOnly
+  - -XX:+UseTLAB
+  - -XX:+CMSParallelInitialMarkEnabled
+  - -XX:+CMSEdenChunksRecordAlways
+  - -XX:+UseCondCardMark
+  - -Dcassandra-foreground=yes
+  - -Djava.net.preferIPv4Stack=true
+  - -Dcom.sun.management.jmxremote.port={{ .JmxPort }}
+  - -Dcom.sun.management.jmxremote.rmi.port={{ .JmxPort }}
+  - -Dcom.sun.management.jmxremote.ssl=false
+  - -Dcom.sun.management.jmxremote.authenticate=false
+  - -Dlog4j.configuration=log4j-server.properties
+  - -Dlog4j.defaultInitOverride=true
+  - -cp
+  - {{ glob ":" "/data/conf" "/data/lib" "/opt/cassandra/lib/*.jar" }}
+  - org.apache.cassandra.service.CassandraDaemon
+

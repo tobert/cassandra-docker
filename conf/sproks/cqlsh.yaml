@@ -1,0 +1,4 @@
+chdir: /data
+argv:
+  - /opt/cassandra/bin/cqlsh
+{{ range .ExtraArgs }}  - {{ . }}{{ end }}
