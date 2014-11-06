@@ -35,6 +35,8 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+const ugid = 1337
+
 type CassandraDockerConfig struct {
 	VolDir         string   // read/write data, should be a volume
 	SrcConfDir     string   // root path for assets to copy to the volume
@@ -150,6 +152,11 @@ func (cdc *CassandraDockerConfig) mkdirs() {
 	mkdirAll(cdc.LogDir)
 	mkdirAll(cdc.SavedCachesDir)
 	mkdirAll(cdc.SprokDir)
+
+	chownAll(cdc.DataDir)
+	chownAll(cdc.CommitLogDir)
+	chownAll(cdc.LogDir)
+	chownAll(cdc.SavedCachesDir)
 }
 
 // tmplCopy reads all the files in cdc.SrcConfDir, treating them as text
@@ -307,6 +314,22 @@ func mkdirAll(name string) {
 	err := os.MkdirAll(name, 0755)
 	if err != nil {
 		log.Fatalf("os.MkdirAll('%s') failed: %s\n", name)
+	}
+}
+
+func chownAll(name string) {
+	walk := func(fname string, fi os.FileInfo, err error) error {
+		if err != nil {
+			log.Fatalf("error during fs walk of '%s': %s\n", fname, err)
+
+		}
+
+		return os.Chown(fname, ugid, ugid)
+	}
+
+	err := filepath.Walk(name, walk)
+	if err != nil {
+		log.Fatalf("chownAll('%s') failed: %s\n", name, err)
 	}
 }
 

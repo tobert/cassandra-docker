@@ -21,6 +21,7 @@ RUN groupadd -g 1337 cassandra
 RUN useradd -u 1337 -g cassandra -s /bin/sh -d /data cassandra
 RUN chown -R cassandra:cassandra /data
 
+COPY conf /src
 COPY cassandra-docker /bin/
 
 # SSH, Storage Port, JMX, Thrift, CQL Native, OpsCenter Agent

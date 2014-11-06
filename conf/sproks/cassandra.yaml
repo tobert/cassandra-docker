@@ -2,6 +2,8 @@ chdir: /data
 stdin: /dev/null
 stdout: /data/log/console.log
 stderr: /data/log/console.log
+uid: 1337
+gid: 1337
 argv:
   - /usr/bin/java
   - -ea
