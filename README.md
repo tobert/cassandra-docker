@@ -36,6 +36,20 @@ docker run -d tobert/cassandra:2.0.11 cassandra \
   -seeds $IP_OF_SEED_NODE_OR_NODES
 ```
 
+### Accessing Tools
+
+The usual Cassandra tooling is available via both the entrypoint and docker exec.
+
+```sh
+docker run -it --rm tobert/cassandra:2.0.11 cqlsh $HOST
+docker run -it --rm tobert/cassandra:2.0.11 nodetool -h $HOST status
+docker run -it --rm tobert/cassandra:2.0.11 cassandra-stress ...
+
+docker exec -it $ID cqlsh
+docker exec -it $ID nodetool status
+docker exec -it $ID cassandra-stress ...
+```
+
 ### Memory Settings
 
 You may set memory limits on the container using the -m switch, but this
