@@ -45,6 +45,7 @@ type CassandraDockerConfig struct {
 	CommitLogDir   string   // cl directory
 	LogDir         string   // log directory
 	SavedCachesDir string   // saved_caches directory
+	CqlshDotDir    string   // ~/.cassandra
 	CassandraYaml  string   // conf/cassandra.yaml
 	SprokDir       string   // conf/sproks directory
 	ExtraArgs      []string // extra args not caught by flag.Parse
@@ -65,6 +66,7 @@ func main() {
 		CommitLogDir:     "/data/commitlog",
 		LogDir:           "/data/log",
 		SavedCachesDir:   "/data/saved_caches",
+		CqlshDotDir:      "/data/.cassandra",
 		CassandraYaml:    "/data/conf/cassandra.yaml",
 		SprokDir:         "/data/conf/sproks",
 		ClusterName:      "Docker Cluster",
@@ -74,22 +76,29 @@ func main() {
 		JmxPort:          7199,
 	}
 
-	// extract the subcommand from os.Args
 	var command, sprokFile string
 	var args []string
-	switch len(os.Args) {
-	// no arguments, just start Cassandra
-	// TODO: this should probably only happen if it's pid 1
-	case 1:
-		command = "cassandra"
-	// exactly one argument with no args
-	case 2:
-		command = os.Args[1]
-		args = []string{}
-	// command + arguments
-	default:
-		command = os.Args[1]
-		args = os.Args[2:]
+
+	// handle symlink commands, e.g. ln -s /bin/cassandra-docker /bin/cqlsh
+	if path.Base(os.Args[0]) != "cassandra-docker" {
+		command = path.Base(os.Args[0])
+		args = os.Args[1:]
+	} else {
+		// extract the subcommand from os.Args
+		switch len(os.Args) {
+		// no arguments, just start Cassandra
+		// TODO: this should probably only happen if it's pid 1
+		case 1:
+			command = "cassandra"
+		// exactly one argument with no args
+		case 2:
+			command = os.Args[1]
+			args = []string{}
+		// command + arguments
+		default:
+			command = os.Args[1]
+			args = os.Args[2:]
+		}
 	}
 
 	// parse the subcommand and arguments to it
@@ -104,8 +113,8 @@ func main() {
 	case "nodetool":
 		fs.IntVar(&cdc.JmxPort, "p", 7199, "jmx port")
 		sprokFile = path.Join(cdc.SprokDir, "nodetool.yaml")
-	case "stress":
-		sprokFile = path.Join(cdc.SprokDir, "stress.yaml")
+	case "cassandra-stress":
+		sprokFile = path.Join(cdc.SprokDir, "cassandra-stress.yaml")
 	default:
 		log.Fatalf("invalid command '%s'", command)
 	}
@@ -151,12 +160,14 @@ func (cdc *CassandraDockerConfig) mkdirs() {
 	mkdirAll(cdc.CommitLogDir)
 	mkdirAll(cdc.LogDir)
 	mkdirAll(cdc.SavedCachesDir)
+	mkdirAll(cdc.CqlshDotDir)
 	mkdirAll(cdc.SprokDir)
 
 	chownAll(cdc.DataDir)
 	chownAll(cdc.CommitLogDir)
 	chownAll(cdc.LogDir)
 	chownAll(cdc.SavedCachesDir)
+	chownAll(cdc.CqlshDotDir)
 }
 
 // tmplCopy reads all the files in cdc.SrcConfDir, treating them as text
