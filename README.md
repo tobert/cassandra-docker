@@ -12,9 +12,9 @@ you `docker run`. For situations where the data is disposable (e.g. tests),
 the volume may be omitted.
 
 ```
-docker pull tobert/cassandra:2.0.11
+docker pull tobert/cassandra:2.1.1
 mkdir /srv/cassandra
-docker run -d -v /srv/cassandra:/data tobert/cassandra:2.0.11
+docker run -d -v /srv/cassandra:/data tobert/cassandra:2.1.1
 ```
 
 ### Running a Cluster
@@ -24,14 +24,14 @@ can be accomplished by pre-pushing a cassandra.yaml to $VOLUME/conf/cassandra.ya
 or by passing the -name "NAME" option to the container on startup.
 
 ```
-docker run -d tobert/cassandra:2.0.11 cassandra -name "Test Cluster"
+docker run -d tobert/cassandra:2.1.1 cassandra -name "Test Cluster"
 ```
 
 Adding nodes to the cluster simply requires setting the seeds. Again, this can be
 done via cassandra.yaml or using a CLI argument to the container.
 
 ```
-docker run -d tobert/cassandra:2.0.11 cassandra \
+docker run -d tobert/cassandra:2.1.1 cassandra \
   -name "Test Cluster" \
   -seeds $IP_OF_SEED_NODE_OR_NODES
 ```
@@ -41,9 +41,9 @@ docker run -d tobert/cassandra:2.0.11 cassandra \
 The usual Cassandra tooling is available via both the entrypoint and docker exec.
 
 ```sh
-docker run -it --rm tobert/cassandra:2.0.11 cqlsh $HOST
-docker run -it --rm tobert/cassandra:2.0.11 nodetool -h $HOST status
-docker run -it --rm tobert/cassandra:2.0.11 cassandra-stress ...
+docker run -it --rm tobert/cassandra:2.1.1 cqlsh $HOST
+docker run -it --rm tobert/cassandra:2.1.1 nodetool -h $HOST status
+docker run -it --rm tobert/cassandra:2.1.1 cassandra-stress ...
 
 docker exec -it $ID cqlsh
 docker exec -it $ID nodetool status
