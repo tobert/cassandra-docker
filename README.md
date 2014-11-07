@@ -62,6 +62,9 @@ are stored there for this Docker image.
 It's a simple process. Build the entrypoint then build the image.
 
 ```sh
+# get sprok and goyaml
+go get -u github.com/tobert/sprok
+go get -u gopkg.in/yaml.v2
 # build the entrypoint binary
 go build
 # build the Docker image
