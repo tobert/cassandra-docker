@@ -3,7 +3,7 @@ uid: 1337
 gid: 1337
 argv:
   - /usr/bin/java
-  - -Dlog4j.configuration=log4j-tools.properties
+  - -Dlogback.configurationFile=logback-tools.xml
   - -cp
   - {{ glob ":" "/data/conf" "/data/lib" "/opt/cassandra/lib/*.jar" "/opt/cassandra/tools/lib/*.jar" }}
   - org.apache.cassandra.stress.Stress

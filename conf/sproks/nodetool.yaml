@@ -4,7 +4,7 @@ gid: 1337
 argv:
   - /usr/bin/java
   - -Xmx128m
-  - -Dlog4j.configuration=log4j-tools.properties
+  - -Dlogback.configurationFile=logback-tools.xml
   - -Dstorage-config=/data/conf
   - -cp
   - {{ glob ":" "/data/conf" "/data/lib" "/opt/cassandra/lib/*.jar" }}
