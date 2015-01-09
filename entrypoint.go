@@ -277,7 +277,7 @@ func (cdc *CassandraDockerConfig) setDefaultIP() {
 		// and is not a loopback, which should cover most Docker setups
 		for _, addr := range addrs {
 			switch v := addr.(type) {
-			case *net.IPAddr:
+			case *net.IPNet:
 				cdc.DefaultIP = v.IP.String()
 				return
 			}
