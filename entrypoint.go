@@ -126,6 +126,10 @@ func main() {
 
 	// bootstrap - find the default IP, make directories, copy files
 	cdc.setDefaultIP()
+	if strings.EqualFold(cdc.Seeds,"127.0.0.1") {
+		cdc.Seeds=cdc.DefaultIP;
+	}
+
 	cdc.mkdirs()
 	// copies files from src to data, running them through as templates
 	// in the process. existing files are not overwritten
