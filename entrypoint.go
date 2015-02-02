@@ -54,6 +54,7 @@ type CassandraDockerConfig struct {
 	Seeds            string // seeds value for cassandra.yaml
 	CassandraLogfile string // system.log
 	DefaultIP        string // IP of the default route interface
+	Hostname         string // Hostname of cluster node (for nodetool) 
 	JmxPort          int
 }
 
@@ -73,6 +74,7 @@ func main() {
 		Seeds:            "127.0.0.1",
 		CassandraLogfile: "/data/log/system.log",
 		DefaultIP:        "127.0.0.1",
+		Hostname:         "127.0.0.1",
 		JmxPort:          7199,
 	}
 
@@ -112,6 +114,7 @@ func main() {
 		sprokFile = path.Join(cdc.SprokDir, "cqlsh.yaml")
 	case "nodetool":
 		fs.IntVar(&cdc.JmxPort, "p", 7199, "jmx port")
+		fs.StringVar(&cdc.Hostname, "h", "127.0.0.1", "hostname of one cassandra cluster node")
 		sprokFile = path.Join(cdc.SprokDir, "nodetool.yaml")
 	case "cassandra-stress":
 		sprokFile = path.Join(cdc.SprokDir, "cassandra-stress.yaml")

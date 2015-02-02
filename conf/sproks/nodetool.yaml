@@ -11,4 +11,6 @@ argv:
   - org.apache.cassandra.tools.NodeTool
   - -p
   - {{ .JmxPort }}
+  - -h
+  - {{ .Hostname }}
 {{ range .ExtraArgs }}  - {{ . }}{{ end }}
