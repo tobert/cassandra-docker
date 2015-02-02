@@ -8,7 +8,7 @@ argv:
   - -Dstorage-config=/data/conf
   - -cp
   - {{ glob ":" "/data/conf" "/data/lib" "/opt/cassandra/lib/*.jar" }}
-  - org.apache.cassandra.tools.NodeCmd
+  - org.apache.cassandra.tools.NodeTool
   - -p
   - {{ .JmxPort }}
 {{ range .ExtraArgs }}  - {{ . }}{{ end }}
