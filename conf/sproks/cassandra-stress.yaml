@@ -7,4 +7,5 @@ argv:
   - -cp
   - {{ glob ":" "/data/conf" "/data/lib" "/opt/cassandra/lib/*.jar" "/opt/cassandra/tools/lib/*.jar" }}
   - org.apache.cassandra.stress.Stress
-{{ range .ExtraArgs }}  - {{ . }}{{ end }}
+{{ range .ExtraArgs }}  - {{ . }}
+{{ end }}

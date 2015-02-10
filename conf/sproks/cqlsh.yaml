@@ -3,4 +3,5 @@ uid: 1337
 gid: 1337
 argv:
   - /opt/cassandra/bin/cqlsh
-{{ range .ExtraArgs }}  - {{ . }}{{ end }}
+{{ range .ExtraArgs }}  - {{ . }}
+{{ end }}
