@@ -27,7 +27,7 @@ COPY conf /src/conf
 
 # install the entrypoint
 # building it is just: go build
-COPY cassandra-docker /bin/
+COPY cassandra-docker/cassandra-docker /bin/
 
 # create symlinks for common commands (for docker exec)
 RUN ln -s /bin/cassandra-docker /bin/cassandra && \
