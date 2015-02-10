@@ -20,7 +20,6 @@ package main
 
 import (
 	"bytes"
-	"flag"
 	"io"
 	"io/ioutil"
 	"log"
@@ -48,13 +47,13 @@ type CassandraDockerConfig struct {
 	CqlshDotDir    string   // ~/.cassandra
 	CassandraYaml  string   // conf/cassandra.yaml
 	SprokDir       string   // conf/sproks directory
-	ExtraArgs      []string // extra args not caught by flag.Parse
+	ExtraArgs      []string // args to be passed to child commands
 	// Cassandra configuration items
 	ClusterName      string // cluster_name in cassandra.yaml
 	Seeds            string // seeds value for cassandra.yaml
 	CassandraLogfile string // system.log
 	DefaultIP        string // IP of the default route interface
-	JmxPort          int
+	JmxPort          string // JMX port for nodetool
 }
 
 func main() {
@@ -73,45 +72,49 @@ func main() {
 		Seeds:            "127.0.0.1",
 		CassandraLogfile: "/data/log/system.log",
 		DefaultIP:        "127.0.0.1",
-		JmxPort:          7199,
+		JmxPort:          "7199",
 	}
 
 	var command, sprokFile string
 	var args []string
 
-	// handle symlink commands, e.g. ln -s /bin/cassandra-docker /bin/cqlsh
+	// extract the command, e.g. 'cassandra', 'nodetool' from os.Args
+	// when not present it's assumed to be 'cassandra' even when arguments
+	// are provided.
 	if path.Base(os.Args[0]) != "cassandra-docker" {
+		// handle symlink commands, e.g. ln -s /bin/cassandra-docker /bin/cqlsh
 		command = path.Base(os.Args[0])
 		args = os.Args[1:]
-	} else {
-		// extract the subcommand from os.Args
-		switch len(os.Args) {
-		// no arguments, just start Cassandra
-		// TODO: this should probably only happen if it's pid 1
-		case 1:
+	} else if len(os.Args) == 1 {
+		// no arguments: run cassandra
+		command = "cassandra"
+		args = []string{}
+	} else if len(os.Args) > 1 {
+		// when no command is provided, assume cassandra + flags
+		// otherwise take the first argument as the command and check it below
+		if strings.HasPrefix(os.Args[1], "-") {
 			command = "cassandra"
-		// exactly one argument with no args
-		case 2:
+			args = os.Args[1:]
+		} else {
 			command = os.Args[1]
-			args = []string{}
-		// command + arguments
-		default:
-			command = os.Args[1]
-			args = os.Args[2:]
+			if len(os.Args) > 2 {
+				args = os.Args[2:]
+			} else {
+				args = []string{}
+			}
 		}
 	}
 
 	// parse the subcommand and arguments to it
-	fs := flag.NewFlagSet("cassandra-docker", flag.ExitOnError)
 	switch command {
 	case "cassandra":
-		fs.StringVar(&cdc.Seeds, "seeds", "127.0.0.1", "comma-delimited list of seeds for clustering")
-		fs.StringVar(&cdc.ClusterName, "name", "Docker Cluster", "cluster_name")
+		args, _, cdc.Seeds = extractArg(args, "seeds", "127.0.0.1")
+		args, _, cdc.ClusterName = extractArg(args, "name", "Docker Cluster")
 		sprokFile = path.Join(cdc.SprokDir, "cassandra.yaml")
 	case "cqlsh":
 		sprokFile = path.Join(cdc.SprokDir, "cqlsh.yaml")
 	case "nodetool":
-		fs.IntVar(&cdc.JmxPort, "p", 7199, "jmx port")
+		args, _, cdc.JmxPort = extractArg(args, "p", "7199")
 		sprokFile = path.Join(cdc.SprokDir, "nodetool.yaml")
 	case "cassandra-stress":
 		sprokFile = path.Join(cdc.SprokDir, "cassandra-stress.yaml")
@@ -119,10 +122,8 @@ func main() {
 		log.Fatalf("invalid command '%s'", command)
 	}
 
-	fs.Parse(args)
-
-	// copy the remaining command-line args to cdc
-	cdc.ExtraArgs = fs.Args()
+	// copy the remaining command-line args to cdc so templates can render
+	cdc.ExtraArgs = args
 
 	// bootstrap - find the default IP, make directories, copy files
 	cdc.setDefaultIP()

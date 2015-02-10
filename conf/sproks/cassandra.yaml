@@ -39,3 +39,4 @@ argv:
   - -cp
   - {{ glob ":" "/data/conf" "/data/lib" "/opt/cassandra/lib/*.jar" }}
   - org.apache.cassandra.service.CassandraDaemon
+{{ range .ExtraArgs }}  - {{ . }}{{ end }}
