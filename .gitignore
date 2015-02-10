@@ -24,7 +24,7 @@ _testmain.go
 *.prof
 
 # the entrypoint binary
-cassandra-docker
+cassandra-docker/cassandra-docker
 
 # cassandra tarballs
 apache-cassandra-*.tar.gz
