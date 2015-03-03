@@ -329,7 +329,7 @@ func exists(name string) bool {
 func mkdirAll(name string) {
 	err := os.MkdirAll(name, 0755)
 	if err != nil {
-		log.Fatalf("os.MkdirAll('%s') failed: %s\n", name)
+		log.Fatalf("os.MkdirAll('%s') failed: %s\n", name, err)
 	}
 }
 
