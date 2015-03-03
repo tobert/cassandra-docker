@@ -43,6 +43,7 @@ type CassandraDockerConfig struct {
 	DataDir        string   // data directory
 	CommitLogDir   string   // cl directory
 	LogDir         string   // log directory
+	LibDir         string   // custom classpath directory
 	SavedCachesDir string   // saved_caches directory
 	CqlshDotDir    string   // ~/.cassandra
 	CassandraYaml  string   // conf/cassandra.yaml
@@ -64,6 +65,7 @@ func main() {
 		DataDir:          "/data/data",
 		CommitLogDir:     "/data/commitlog",
 		LogDir:           "/data/log",
+		LibDir:           "/data/lib",
 		SavedCachesDir:   "/data/saved_caches",
 		CqlshDotDir:      "/data/.cassandra",
 		CassandraYaml:    "/data/conf/cassandra.yaml",
