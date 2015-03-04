@@ -35,7 +35,7 @@ RUN ln -s /bin/cassandra-docker /bin/cassandra && \
     ln -s /bin/cassandra-docker /bin/nodetool  && \
     ln -s /bin/cassandra-docker /bin/cassandra-stress
 
-# SSH, Storage Port, JMX, Thrift, CQL Native, OpsCenter Agent
+# Storage Port, JMX, Thrift, CQL Native, OpsCenter Agent
 # Left out: SSL
-EXPOSE 22 7000 7199 9042 9160 61621
+EXPOSE 7000 7199 9042 9160 61621
 
