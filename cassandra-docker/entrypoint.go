@@ -37,7 +37,6 @@ import (
 const ugid = 1337
 
 type CassandraDockerConfig struct {
-	VolDir         string   // read/write data, should be a volume
 	SrcConfDir     string   // root path for assets to copy to the volume
 	ConfDir        string   // conf directory
 	DataDir        string   // data directory
@@ -59,7 +58,6 @@ type CassandraDockerConfig struct {
 
 func main() {
 	cdc := CassandraDockerConfig{
-		VolDir:           "/data",
 		SrcConfDir:       "/src/conf",
 		ConfDir:          "/data/conf",
 		DataDir:          "/data/data",
