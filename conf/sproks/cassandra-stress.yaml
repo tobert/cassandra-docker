@@ -1,11 +1,11 @@
-chdir: /data
+chdir: {{ .DataDir }}
 uid: 1337
 gid: 1337
 argv:
   - /usr/bin/java
   - -Dlogback.configurationFile=logback-tools.xml
   - -cp
-  - {{ glob ":" "/data/conf" "/data/lib" "/opt/cassandra/lib/*.jar" "/opt/cassandra/tools/lib/*.jar" }}
+  - {{ glob ":" .ConfDir .LibDir "/opt/cassandra/lib/*.jar" }}
   - org.apache.cassandra.stress.Stress
 {{ range .ExtraArgs }}  - {{ . }}
 {{ end }}

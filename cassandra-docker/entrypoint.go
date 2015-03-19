@@ -37,12 +37,12 @@ import (
 const ugid = 1337
 
 type CassandraDockerConfig struct {
-	VolDir         string   // read/write data, should be a volume
 	SrcConfDir     string   // root path for assets to copy to the volume
 	ConfDir        string   // conf directory
 	DataDir        string   // data directory
 	CommitLogDir   string   // cl directory
 	LogDir         string   // log directory
+	LibDir         string   // custom classpath directory
 	SavedCachesDir string   // saved_caches directory
 	CqlshDotDir    string   // ~/.cassandra
 	CassandraYaml  string   // conf/cassandra.yaml
@@ -58,12 +58,12 @@ type CassandraDockerConfig struct {
 
 func main() {
 	cdc := CassandraDockerConfig{
-		VolDir:           "/data",
 		SrcConfDir:       "/src/conf",
 		ConfDir:          "/data/conf",
 		DataDir:          "/data/data",
 		CommitLogDir:     "/data/commitlog",
 		LogDir:           "/data/log",
+		LibDir:           "/data/lib",
 		SavedCachesDir:   "/data/saved_caches",
 		CqlshDotDir:      "/data/.cassandra",
 		CassandraYaml:    "/data/conf/cassandra.yaml",
@@ -329,7 +329,7 @@ func exists(name string) bool {
 func mkdirAll(name string) {
 	err := os.MkdirAll(name, 0755)
 	if err != nil {
-		log.Fatalf("os.MkdirAll('%s') failed: %s\n", name)
+		log.Fatalf("os.MkdirAll('%s') failed: %s\n", name, err)
 	}
 }
 
