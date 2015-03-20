@@ -283,8 +283,14 @@ func (cdc *CassandraDockerConfig) setDefaultIP() {
 		for _, addr := range addrs {
 			switch v := addr.(type) {
 			case *net.IPNet:
-				cdc.DefaultIP = v.IP.String()
-				return
+				// net.IP.To4 (as of Go 1.4) will return nil if v.IP is a full ipv6 address
+				// otherwise it'll covert 4-in-6 address back to v4 which is what we want
+				// anyways since most of the time that's the right interface anyways
+				ip := v.IP.To4()
+				if ip != nil {
+					cdc.DefaultIP = ip.String()
+					return
+				}
 			}
 		}
 	}
