@@ -52,7 +52,8 @@ type CassandraDockerConfig struct {
 	ClusterName      string // cluster_name in cassandra.yaml
 	Seeds            string // seeds value for cassandra.yaml
 	CassandraLogfile string // system.log
-	DefaultIP        string // IP of the default route interface
+	DefaultIface     string // the default route interface
+	DefaultIP        string // IP of the DefaultIface
 	JmxPort          string // JMX port for nodetool
 	HeapMB           int    // -Xmx / -Xms value in MB
 	NewMB            int    // -Xmn value in MB
@@ -73,6 +74,7 @@ func main() {
 		ClusterName:      "Docker Cluster",
 		Seeds:            "127.0.0.1",
 		CassandraLogfile: "/data/log/system.log",
+		DefaultIface:     "eth0",
 		DefaultIP:        "127.0.0.1",
 		JmxPort:          "7199",
 		HeapMB:           1024,
@@ -138,12 +140,14 @@ func main() {
 	cdc.ExtraArgs = args
 
 	// bootstrap - find the default IP, make directories, copy files
-	cdc.setDefaultIP()
+
+	cdc.guessDefaultIface()
 	if strings.EqualFold(cdc.Seeds, "127.0.0.1") {
 		cdc.Seeds = cdc.DefaultIP
 	}
 
 	cdc.mkdirs()
+
 	// copies files from src to data, running them through as templates
 	// in the process. existing files are not overwritten
 	cdc.tmplCopy()
@@ -269,10 +273,9 @@ func (cdc *CassandraDockerConfig) render(in io.Reader, out io.Writer) {
 	}
 }
 
-
-// setDefaultIP finds the first configured interface that is not a loopback
-// and sets the cdc.DefaultIP value
-func (cdc *CassandraDockerConfig) setDefaultIP() {
+// guessDefaultIface finds the *most likely* default route
+// interface and sets the cdc.DefaultIP + cdc.DefaultIface values.
+func (cdc *CassandraDockerConfig) guessDefaultIface() {
 	ifaces, err := net.Interfaces()
 	if err != nil {
 		log.Fatalf("error while listing network interfaces: %s\n", err)
@@ -291,16 +294,15 @@ func (cdc *CassandraDockerConfig) setDefaultIP() {
 			log.Fatalf("error while examining network interface: %s\n", err)
 		}
 
-		// for now, just go with the first interface that is up
-		// and is not a loopback, which should cover most Docker setups
+		// go with the first interface that is up, has an address,
+		// and is not a loopback. This should cover most Docker setups.
 		for _, addr := range addrs {
 			switch v := addr.(type) {
 			case *net.IPNet:
-				// net.IP.To4 (as of Go 1.4) will return nil if v.IP is a full ipv6 address
-				// otherwise it'll covert 4-in-6 address back to v4 which is what we want
-				// anyways since most of the time that's the right interface anyways
+				// net.IP.To4 (as of Go 1.4) will return nil if v.IP is a full v6 address
 				ip := v.IP.To4()
 				if ip != nil {
+					cdc.DefaultIface = iface.Name
 					cdc.DefaultIP = ip.String()
 					return
 				}
