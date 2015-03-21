@@ -54,6 +54,8 @@ type CassandraDockerConfig struct {
 	CassandraLogfile string // system.log
 	DefaultIP        string // IP of the default route interface
 	JmxPort          string // JMX port for nodetool
+	HeapMB           int    // -Xmx / -Xms value in MB
+	NewMB            int    // -Xmn value in MB
 }
 
 func main() {
@@ -73,6 +75,8 @@ func main() {
 		CassandraLogfile: "/data/log/system.log",
 		DefaultIP:        "127.0.0.1",
 		JmxPort:          "7199",
+		HeapMB:           1024,
+		NewMB:            256,
 	}
 
 	var command, sprokFile string
@@ -110,6 +114,14 @@ func main() {
 	case "cassandra":
 		args, _, cdc.Seeds = extractArg(args, "seeds", "127.0.0.1")
 		args, _, cdc.ClusterName = extractArg(args, "name", "Docker Cluster")
+		args, _, cdc.HeapMB = extractIntArg(args, "heap", 1024)
+		args, _, cdc.NewMB = extractIntArg(args, "new", 256)
+
+		// if heap is set but newsize is not, recalculate at 25% of heap
+		if cdc.HeapMB != 1024 && cdc.NewMB == 256 {
+			cdc.NewMB = cdc.HeapMB / 4
+		}
+
 		sprokFile = path.Join(cdc.SprokDir, "cassandra.yaml")
 	case "cqlsh":
 		sprokFile = path.Join(cdc.SprokDir, "cqlsh.yaml")
@@ -256,6 +268,7 @@ func (cdc *CassandraDockerConfig) render(in io.Reader, out io.Writer) {
 		log.Fatalf("template rendering failed: %s\n", err)
 	}
 }
+
 
 // setDefaultIP finds the first configured interface that is not a loopback
 // and sets the cdc.DefaultIP value

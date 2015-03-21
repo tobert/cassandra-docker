@@ -11,9 +11,9 @@ argv:
   - -XX:+CMSClassUnloadingEnabled
   - -XX:+UseThreadPriorities
   - -XX:ThreadPriorityPolicy=42
-  - -Xms3941M
-  - -Xmx3941M
-  - -Xmn800M
+  - -Xmx{{ .HeapMB }}M
+  - -Xms{{ .HeapMB }}M
+  - -Xmn{{ .NewMB }}M
   - -XX:+HeapDumpOnOutOfMemoryError
   - -Xss256k
   - -XX:StringTableSize=1000003

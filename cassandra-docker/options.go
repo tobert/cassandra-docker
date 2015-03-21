@@ -19,7 +19,11 @@ package main
  * so the rest can be passed through to backing tools.
  */
 
-import "strings"
+import (
+	"log"
+	"strconv"
+	"strings"
+)
 
 func deleteArg(args []string, index int) ([]string, string) {
 	var deleted string
@@ -51,6 +55,7 @@ func extractArg(args []string, want string, def string) ([]string, string, strin
 			// remove 1 or more dashes so --seeds and -seeds are both supported
 			if strings.TrimLeft(arg, "-") == want {
 				args, argname = deleteArg(args, i)
+				// empty string default means it's a boolean flag
 				if def != "" {
 					args, argval = deleteArg(args, i)
 				}
@@ -59,4 +64,15 @@ func extractArg(args []string, want string, def string) ([]string, string, strin
 	}
 
 	return args, argname, argval
+}
+
+// extractIntArg wraps extractArg and returns an integer value
+// if the value provided cannot be converted to an integer, a fatal error is logged
+func extractIntArg(args []string, want string, def int) ([]string, string, int) {
+	args_out, argname, argval := extractArg(args, want, strconv.Itoa(def))
+	argint, err := strconv.Atoi(argval)
+	if err != nil {
+		log.Fatalf("Failed to convert argument '%s' value of '%s' to an integer: %s\n", argname, argval, err)
+	}
+	return args_out, argname, argint
 }
