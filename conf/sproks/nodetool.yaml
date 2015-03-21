@@ -4,11 +4,11 @@ gid: 1337
 argv:
   - /usr/bin/java
   - -Xmx128m
-  - -Dlogback.configurationFile=logback-tools.xml
+  - -Dlog4j.configuration=log4j-tools.properties
   - -Dstorage-config={{ .ConfDir }}
   - -cp
   - {{ glob ":" .ConfDir .LibDir "/opt/cassandra/lib/*.jar" }}
-  - org.apache.cassandra.tools.NodeTool
+  - org.apache.cassandra.tools.NodeCmd
   - -p
   - {{ .JmxPort }}
 {{ range .ExtraArgs }}  - {{ . }}

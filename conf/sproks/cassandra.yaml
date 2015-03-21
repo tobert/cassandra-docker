@@ -26,14 +26,16 @@ argv:
   - -XX:+UseCMSInitiatingOccupancyOnly
   - -XX:+UseTLAB
   - -XX:CompileCommandFile={{ .ConfDir }}/hotspot_compiler
-  - -XX:CMSWaitDuration=10000
   - -XX:+UseCondCardMark
+  - -XX:+CMSParallelInitialMarkEnabled
+  - -XX:+CMSEdenChunksRecordAlways
   - -Djava.net.preferIPv4Stack=true
-  - -Dcom.sun.management.jmxremote.port=7199
-  - -Dcom.sun.management.jmxremote.rmi.port=7199
+  - -Dcom.sun.management.jmxremote.port={{ .JmxPort }}
+  - -Dcom.sun.management.jmxremote.rmi.port={{ .JmxPort }}
   - -Dcom.sun.management.jmxremote.ssl=false
   - -Dcom.sun.management.jmxremote.authenticate=false
-  - -Dlogback.configurationFile=logback.xml
+  - -Dlog4j.configuration=log4j-server.properties
+  - -Dlog4j.defaultInitOverride=true
   - -Dcassandra.logdir={{ .LogDir }}
   - -Dcassandra-foreground=yes
   - -cp
