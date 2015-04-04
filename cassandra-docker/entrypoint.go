@@ -57,6 +57,9 @@ type CassandraDockerConfig struct {
 	JmxPort          string // JMX port for nodetool
 	HeapMB           int    // -Xmx / -Xms value in MB
 	NewMB            int    // -Xmn value in MB
+	Snitch           string // endpoint_snitch in cassandra.yaml
+	DataCenter       string // dc in cassandra-rackdc.properties
+	Rack             string // rack in cassandra-rackdc.properties 
 }
 
 func main() {
@@ -79,10 +82,14 @@ func main() {
 		JmxPort:          "7199",
 		HeapMB:           1024,
 		NewMB:            256,
+		Snitch:           "SimpleSnitch",
+		DataCenter:       "DC1",
+		Rack:             "RAC1",
 	}
 
 	var command, sprokFile string
 	var args []string
+	var dcOrRackSet bool
 
 	// extract the command, e.g. 'cassandra', 'nodetool' from os.Args
 	// when not present it's assumed to be 'cassandra' even when arguments
@@ -114,14 +121,25 @@ func main() {
 	// parse the subcommand and arguments to it
 	switch command {
 	case "cassandra":
+
+		dcOrRackSet = topologySpecified(args)
+
 		args, _, cdc.Seeds = extractArg(args, "seeds", "127.0.0.1")
 		args, _, cdc.ClusterName = extractArg(args, "name", "Docker Cluster")
 		args, _, cdc.HeapMB = extractIntArg(args, "heap", 1024)
 		args, _, cdc.NewMB = extractIntArg(args, "new", 256)
+		args, _, cdc.Snitch = extractArg(args, "snitch", "SimpleSnitch")
+		args, _, cdc.DataCenter = extractArg(args, "dc", "DC1")
+		args, _, cdc.Rack = extractArg(args, "rack", "RAC1")
 
 		// if heap is set but newsize is not, recalculate at 25% of heap
 		if cdc.HeapMB != 1024 && cdc.NewMB == 256 {
 			cdc.NewMB = cdc.HeapMB / 4
+		}
+
+		// If dc or rack are set (and snitch is not), set snitch accordingly
+		if (dcOrRackSet) && cdc.Snitch == "SimpleSnitch" {
+			cdc.Snitch = "GossipingPropertyFileSnitch"
 		}
 
 		sprokFile = path.Join(cdc.SprokDir, "cassandra.yaml")
@@ -173,6 +191,15 @@ func main() {
 
 	// this is an actual execve(3p), this process is replaced with the new one
 	proc.Exec()
+}
+
+func topologySpecified(args []string) bool {
+	for _, arg := range args {
+		if arg == "-dc" || arg == "-rack" {
+			return true
+		}
+	}
+	return false
 }
 
 func (cdc *CassandraDockerConfig) mkdirs() {
