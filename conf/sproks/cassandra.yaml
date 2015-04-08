@@ -25,6 +25,9 @@ argv:
   - -XX:CMSInitiatingOccupancyFraction=75
   - -XX:+UseCMSInitiatingOccupancyOnly
   - -XX:+UseTLAB
+  - -XX:+ResizeTLAB
+  - -XX:+AlwaysPreTouch # zero memory to avoid page fault delay in absence of memlock
+  - -XX:-UseBiasedLocking # biased locking does not benefit Cassandra
   - -XX:CompileCommandFile={{ .ConfDir }}/hotspot_compiler
   - -XX:CMSWaitDuration=10000
   - -XX:+UseCondCardMark
