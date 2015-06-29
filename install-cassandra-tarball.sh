@@ -15,10 +15,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-VERSION="2.1.3"
-SHA1="306c3bc209717c19f6458a01f2da84f69b974c0f"
+VERSION="2.1.6"
+SHA1="b3f2af56d013301c3e785cc9a46ed668562888df"
 TARBALL="apache-cassandra-${VERSION}-bin.tar.gz"
-URL="http://www.apache.dist/cassandra/${VERSION}/${TARBALL}"
+URL="http://www.apache.org/dist/cassandra/${VERSION}/${TARBALL}"
 
 cd /
 
@@ -34,7 +34,7 @@ echo "${SHA1} ${TARBALL}" > ${TARBALL}.sha1
 ls -l
 
 # copy in from the Dockerfile for now to save downloads
-#curl -O -s ${URL}
+curl -O -s ${URL}
 
 sha1sum --check ${TARBALL}.sha1
 

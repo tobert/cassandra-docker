@@ -21,9 +21,17 @@ set -x
 export DEBIAN_FRONTEND=noninteractive
 
 apt-get update
+apt-get install -y software-properties-common
 apt-get -y -o Dpkg::Options::='--force-confold' dist-upgrade
 apt-get clean
-apt-get install -y curl busybox openjdk-7-jre-headless java-common libjna-java python
+# install oracle java from PPA
+add-apt-repository ppa:webupd8team/java -y
+apt-get update
+echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | /usr/bin/debconf-set-selections
+apt-get -y install oracle-java8-set-default && apt-get clean
+update-java-alternatives -s java-8-oracle
+echo "export JAVA_HOME=/usr/lib/jvm/java-8-oracle" >> ~/.bashrc
+apt-get install -y curl busybox python
 apt-get clean
 
 rm -f $0
