@@ -42,7 +42,7 @@ func deleteArg(args []string, index int) ([]string, string) {
 	return out, deleted
 }
 
-// findArg finds the named argument in args, removes it and its optional value
+// extractArg finds the named argument in args, removes it and its optional value
 // from args then returns the modified list, the provided arg, and its value. If the
 // default value is empty string, the arg is assumed to be a boolean switch with no value.
 // e.g. leftover, results := extractArg(os.Args[1:], "seeds", "127.0.0.1")

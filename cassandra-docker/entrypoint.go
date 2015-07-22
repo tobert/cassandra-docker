@@ -45,6 +45,7 @@ type CassandraDockerConfig struct {
 	LibDir         string   // custom classpath directory
 	SavedCachesDir string   // saved_caches directory
 	CqlshDotDir    string   // ~/.cassandra
+	CqlshConf      string   // ~/.cassandra/cqlshrc"
 	CassandraYaml  string   // conf/cassandra.yaml
 	SprokDir       string   // conf/sproks directory
 	ExtraArgs      []string // args to be passed to child commands
@@ -72,6 +73,7 @@ func main() {
 		LibDir:           "/data/lib",
 		SavedCachesDir:   "/data/saved_caches",
 		CqlshDotDir:      "/data/.cassandra",
+		CqlshConf:        "/data/.cassandra/cqlshrc",
 		CassandraYaml:    "/data/conf/cassandra.yaml",
 		SprokDir:         "/data/conf/sproks",
 		ClusterName:      "Docker Cluster",
@@ -230,16 +232,20 @@ func (cdc *CassandraDockerConfig) tmplCopy() {
 		// only safe for same filesystem with no relative paths or symlinks
 		toName := strings.Replace(fromName, cdc.SrcConfDir, cdc.ConfDir, 1)
 
+		// don't overwrite existing files
 		if exists(toName) {
-			return nil // try not to overwrite any existing files
+			return nil
+		// ignore dotfiles
 		} else if strings.HasPrefix(path.Base(fromName), ".") {
 			return nil
+		// create directories
 		} else if fromFi.IsDir() {
 			if exists(toName) {
 				return nil
 			} else {
 				mkdirAll(toName)
 			}
+		// render files
 		} else if fromFi.Mode().IsRegular() {
 			// don't render sprok files, only copy them
 			// they will get rendered at run time
@@ -258,6 +264,11 @@ func (cdc *CassandraDockerConfig) tmplCopy() {
 	err := filepath.Walk(cdc.SrcConfDir, walk)
 	if err != nil {
 		log.Fatalf("tmplCopy() failed: %s\n", err)
+	}
+
+	// write out a cqlshrc so cqlsh works as expected
+	if !exists(cdc.CqlshConf) {
+		cdc.renderFile(path.Join(cdc.SrcConfDir, "cqlshrc"), cdc.CqlshConf)
 	}
 }
 
