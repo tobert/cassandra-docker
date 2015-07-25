@@ -18,7 +18,7 @@
 VERSION="2.1.7"
 SHA1="b720a3b31da17f42722e1e4c97a937fde45369d0"
 TARBALL="apache-cassandra-${VERSION}-bin.tar.gz"
-URL="http://www.apache.dist/cassandra/${VERSION}/${TARBALL}"
+URL="http://www.apache.org/dist/cassandra/${VERSION}/${TARBALL}"
 
 cd /
 
